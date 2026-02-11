@@ -1,0 +1,7 @@
+data/
+outputs/
+*.pkl
+*.joblib
+.venv/
+__pycache__/
+.DS_Store
