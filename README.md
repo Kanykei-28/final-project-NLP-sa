@@ -79,26 +79,27 @@ From a business perspective, this helps to save time, track customer satisfactio
 
 ### 2.1 Project Structure
 The project follows following structure:
-    - src/train/ – training pipeline and Dockerfile for training and saving the model
-    - src/inference/ – inference piepline and Dockerfile for batch prediction
-    - src/utils/ – files contain paths, constants, preprocessing
-    - tests/ – smoke tests
-    - requirements.txt – dependencies needed for training/inference 
-    - requirements-dev.txt – additional libraries for notebooks and development (these were separated in order to not interfere docker reproducability and make sure no unexpected errors occur when working with Docker)
-    - Note: data and outputs are not included by Git as required in the project description
+
+- src/train/ – training pipeline and Dockerfile for training and saving the model
+- src/inference/ – inference piepline and Dockerfile for batch prediction
+- src/utils/ – files contain paths, constants, preprocessing
+- tests/ – smoke tests
+- requirements.txt – dependencies needed for training/inference 
+- requirements-dev.txt – additional libraries for notebooks and development (these were separated in order to not interfere docker reproducability and make sure no unexpected errors occur when working with Docker)
+- Note: data and outputs are not included by Git as required in the project description
 
 ### 2.2 Data
 The dataset is expected inside `data/raw`. The data/ directory is ignored by Git as asked in the description. So, it must be mounted into Docker when running containers.
 
 ### 2.3 Train 
-Model is trained and saved in `src/train/train.py`. This file uses shared constants such as TEXT_COL, TARGET_COL, and LABEL_MAP to keep the setup consistent. It validates the input data by checking that all required columns are present, that there are no missing values and labels are correct. The model is built using TF-IDF vectorization with LinearSVC. After training, the trained model is saved to `outputs/models/` and the training metrics are saved to `outputs/metrics/train_metrics.json`. All file paths are defined in src/utils/paths.py, so the code does not rely on any absolute system paths.
+Model is trained and saved in `src/train/train.py`. It validates the input data by checking that all required columns are present, that there are no missing values and labels are correct. The model is built using TF-IDF vectorization with LinearSVC. After training, the trained model is saved to `outputs/models/` and the training metrics are saved to `outputs/metrics/train_metrics.json`. All file paths are defined in src/utils/paths.py, so the code does not rely on any absolute system paths.
 - Train locally by: 
-```python -m src.train.train
+``` python -m src.train.train
 ```
 Artifacts will be saved to `outputs/models/` and `outputs/metrics/train_metrics.json`. 
 
 - Train using docker by: 
-```docker build -f src/train/Dockerfile -t epam_sentiment_train .
+``` docker build -f src/train/Dockerfile -t epam_sentiment_train .
 ```
 Run container: 
 ``` docker run --rm \
@@ -111,7 +112,7 @@ Run container:
 The inference check is implemented in `src/inference/run_inference.py`. It requires only the review text column, while the target (sentiment) column is optional. If ground-truth labels are provided, the script computes evaluation metrics. If not provided, then it saves only the predictions. For each inference run predictions and metrics are saved with timestamps. All performance logs with times can be found in and predictions.csv.
 
 - The run_inference.py file can be run locally by using command below: 
-```python -m src.inference.run_inference --input data/raw/inference.csv
+``` python -m src.inference.run_inference --input data/raw/inference.csv
 ```
 Outputs are saved to `outputs/predictions/` and  `outputs/metrics/`. 
 
@@ -119,7 +120,7 @@ Outputs are saved to `outputs/predictions/` and  `outputs/metrics/`.
 ``` docker build -f src/inference/Dockerfile -t epam_sentiment_infer .
 ```
 Run container: 
-```docker run --rm \
+``` docker run --rm \
   -v "$(pwd)/data:/app/data:ro" \
   -v "$(pwd)/outputs:/app/outputs" \
   epam_sentiment_infer \
@@ -131,7 +132,7 @@ In general, here it is imprtant to note that data directory is mounted as read-o
 ### 2.5 Testing
 Simple smoke tests are implemented in `tests/test_smoke.py`. 
 Ti run tests use:
-```pytest -q
+``` pytest -q
 ```
 
 
