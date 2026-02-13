@@ -2,5 +2,5 @@ jupyter==1.1.1
 matplotlib==3.9.2
 seaborn==0.13.2
 nltk==3.9.1
-spacy==3.8.2
+spacy==3.8.2 #comment this line if havin problems with spacy 
 pytest==8.3.4

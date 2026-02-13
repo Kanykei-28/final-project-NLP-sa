@@ -85,7 +85,7 @@ The project follows following structure:
 - src/utils/ – files contain paths, constants, preprocessing
 - tests/ – smoke tests
 - requirements.txt – dependencies needed for training/inference 
-- requirements-dev.txt – additional libraries for notebooks and development (these were separated in order to not interfere docker reproducability and make sure no unexpected errors occur when working with Docker)
+- requirements-dev.txt – additional libraries for notebooks and development (these were separated in order to not interfere docker reproducability and make sure no unexpected errors occur when working with Docker). NO NEED to install it if you are not reproducing EDA notebook. Spacy preferanbly works with Python 3.11 and older. 
 - Note: data and outputs are not included by Git as required in the project description
 
 ### 2.2 Data
