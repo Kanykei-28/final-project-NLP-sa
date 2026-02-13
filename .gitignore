@@ -1,11 +1,22 @@
+# Data & outputs
 data/
-outputs/
+outputs/*
+!outputs/.gitkeep
+
+# Model artifacts
 *.pkl
 *.joblib
+
+# Virtual env
 .venv/
-__pycache__/
-.DS_Store
 
 # Python cache
 __pycache__/
 *.pyc
+.pytest_cache/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
