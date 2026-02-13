@@ -110,6 +110,7 @@ docker build -f src/train/Dockerfile -t epam_sentiment_train .
 ```
 ```markdown
 Run container using: 
+
 ``` docker run --rm \
   -v "$(pwd)/data:/app/data:ro" \
   -v "$(pwd)/outputs:/app/outputs" \
@@ -137,6 +138,7 @@ docker build -f src/inference/Dockerfile -t epam_sentiment_infer .
 
 ```markdown
 Run container using: 
+
 ``` docker run --rm \
   -v "$(pwd)/data:/app/data:ro" \
   -v "$(pwd)/outputs:/app/outputs" \
