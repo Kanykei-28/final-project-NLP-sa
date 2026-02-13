@@ -108,6 +108,7 @@ Build Image using:
 ```bash
 docker build -f src/train/Dockerfile -t epam_sentiment_train .
 ```
+```markdown
 Run container: 
 ``` docker run --rm \
   -v "$(pwd)/data:/app/data:ro" \
@@ -131,6 +132,7 @@ Outputs are saved to `outputs/predictions/` and  `outputs/metrics/`.
 ```bash 
 docker build -f src/inference/Dockerfile -t epam_sentiment_infer .
 ```
+```markdown
 Run container: 
 ``` docker run --rm \
   -v "$(pwd)/data:/app/data:ro" \
