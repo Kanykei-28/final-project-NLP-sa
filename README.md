@@ -101,7 +101,8 @@ python -m src.train.train
 ```
 Artifacts will be saved to `outputs/models/` and `outputs/metrics/train_metrics.json`. 
 
-- Train using docker by: 
+- Train using Docker:
+Build Image using: 
 ```bash
 docker build -f src/train/Dockerfile -t epam_sentiment_train .
 ```
@@ -116,6 +117,7 @@ Run container:
 The inference check is implemented in `src/inference/run_inference.py`. It requires only the review text column, while the target (sentiment) column is optional. If ground-truth labels are provided, the script computes evaluation metrics. If not provided, then it saves only the predictions. For each inference run predictions and metrics are saved with timestamps. All performance logs with times can be found in and predictions.csv.
 
 - The run_inference.py file can be run locally by using command below: 
+Build Image using:
 ```bash
 python -m src.inference.run_inference --input data/raw/inference.csv
 ```
