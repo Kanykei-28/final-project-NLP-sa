@@ -12,14 +12,14 @@ from sklearn.pipeline import Pipeline
 from sklearn.svm import LinearSVC
 from src.utils.paths import RAW_DIR, MODELS_DIR, METRICS_DIR
 from src.utils.text_preprocess import basic_clean
-
+from src.utils.constants import TEXT_COL, TARGET_COL, LABEL_MAP, VALID_LABELS
 
 @dataclass
 class TrainConfig:
     # Data
     train_csv: str = "train.csv"
-    text_col: str = "review"
-    target_col: str = "sentiment"
+    text_col: str = TEXT_COL
+    target_col: str = TARGET_COL
     # Split
     test_size: float = 0.2
     random_state: int = 42
@@ -63,7 +63,7 @@ def load_data(cfg: TrainConfig) -> pd.DataFrame:
         raise ValueError("Found missing values in target column.")
     # Nnomalizing the target
     df[cfg.target_col] = df[cfg.target_col].astype(str).str.lower().str.strip()
-    valid = {"positive", "negative"}
+    valid = VALID_LABELS
     bad = set(df[cfg.target_col].unique()) - valid
     if bad:
         raise ValueError(f"Unexpected labels in target column: {bad}. Expected: {valid}")
@@ -83,7 +83,8 @@ def build_pipeline(cfg: TrainConfig) -> Pipeline:
         C=cfg.C,
         class_weight=cfg.class_weight,
         max_iter=cfg.max_iter,
-        random_state=cfg.random_state,)
+        random_state=cfg.random_state,
+        dual="auto",)
     return Pipeline([("tfidf", tfidf), ("clf", clf)])
 
 
@@ -104,7 +105,7 @@ def main() -> None:
     ensure_dirs()
     df = load_data(cfg)
     X = df[cfg.text_col].astype(str).values
-    y = df[cfg.target_col].map({"negative": 0, "positive": 1}).values
+    y = df[cfg.target_col].map(LABEL_MAP).values
     X_tr, X_val, y_tr, y_val = train_test_split(X, y,
         test_size=cfg.test_size,
         random_state=cfg.random_state,
@@ -122,7 +123,7 @@ def main() -> None:
     joblib.dump(pipe, model_path)
 
     # saving metrics
-    report = classification_report(y_val, pred, target_names=["negative", "positive"], output_dict=True)
+    report = classification_report(y_val, pred, target_names=[k for k,v in sorted(LABEL_MAP.items(), key=lambda x: x[1])], output_dict=True)
     cm = confusion_matrix(y_val, pred).tolist()
     run_info = {
         "timestamp_utc": datetime.utcnow().isoformat(timespec="seconds") + "Z",

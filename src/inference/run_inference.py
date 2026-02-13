@@ -9,11 +9,8 @@ from typing import Optional, Tuple
 import joblib
 import pandas as pd
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
-from src.utils.paths import MODELS_DIR, METRICS_DIR, PREDICTIONS_DIR
-
-LABEL_MAP = {"negative": 0, "positive": 1}
-ID_TO_LABEL = {0: "negative", 1: "positive"}
-
+from src.utils.paths import ROOT, MODELS_DIR, METRICS_DIR, PREDICTIONS_DIR
+from src.utils.constants import TEXT_COL, TARGET_COL, LABEL_MAP, ID_TO_LABEL
 
 @dataclass
 class InferenceMetrics:
@@ -38,22 +35,23 @@ def load_data(input_csv: Path) -> pd.DataFrame:
     if not input_csv.exists():
         raise FileNotFoundError(f"Input file not found: {input_csv}")
     df = pd.read_csv(input_csv)
-    if "review" not in df.columns:
-        raise ValueError(f"Missing required column 'review'. Columns: {df.columns.tolist()}")
+    if TEXT_COL not in df.columns:
+        raise ValueError(f"Missing required column '{TEXT_COL}'. Columns: {df.columns.tolist()}")
     return df
 
 
 def split_xy(df: pd.DataFrame) -> Tuple[pd.Series, Optional[pd.Series]]:
-    X = df["review"].astype(str)
+    X = df[TEXT_COL].astype(str)
     y = None
-    if "sentiment" in df.columns:
-        y = df["sentiment"].astype(str).str.lower().str.strip().map(LABEL_MAP)
+    if TARGET_COL in df.columns:
+        y = df[TARGET_COL].astype(str).str.lower().str.strip().map(LABEL_MAP)
         if y.isna().any():
-            bad = df.loc[y.isna(), "sentiment"].unique().tolist()
+            bad = df.loc[y.isna(), TARGET_COL].unique().tolist()
             raise ValueError(
                 f"Unknown target labels found: {bad}. Expected only {list(LABEL_MAP.keys())}"
             )
     return X, y
+
 
 def save_predictions(df_in: pd.DataFrame, y_pred_ids, out_path: Path) -> None:
     out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -94,7 +92,11 @@ def main() -> None:
     parser.add_argument("--metrics-out", type=str, default="")
     args = parser.parse_args()
     input_path = Path(args.input)
+    if not input_path.is_absolute():
+        input_path = ROOT / input_path
     model_path = Path(args.model)
+    if not model_path.is_absolute():
+        model_path = ROOT / model_path
     if not model_path.exists():
         raise FileNotFoundError(f"Model not found: {model_path}. Train and save the model first.")
 
@@ -105,20 +107,31 @@ def main() -> None:
     tag = utc_now_tag()
     default_pred_path = PREDICTIONS_DIR / f"predictions_{tag}.csv"
     default_metrics_path = METRICS_DIR / f"inference_metrics_{tag}.json"
-    pred_out_path = Path(args.pred_out) if args.pred_out else default_pred_path
-    metrics_out_path = Path(args.metrics_out) if args.metrics_out else default_metrics_path
+    if args.pred_out:
+        pred_out_path = Path(args.pred_out)
+        if not pred_out_path.is_absolute():
+            pred_out_path = ROOT / pred_out_path
+    else:
+        pred_out_path = default_pred_path
+    if args.metrics_out:
+        metrics_out_path = Path(args.metrics_out)
+        if not metrics_out_path.is_absolute():
+            metrics_out_path = ROOT / metrics_out_path
+    else:
+        metrics_out_path = default_metrics_path
     save_predictions(df, y_pred, pred_out_path)
 
     if y_true is not None:
         acc = float(accuracy_score(y_true, y_pred))
         cm = confusion_matrix(y_true, y_pred).tolist()
-        report = classification_report(y_true, y_pred, target_names=["negative", "positive"], output_dict=True)
+        target_names=[k for k,v in sorted(LABEL_MAP.items(), key=lambda x: x[1])]
+        report = classification_report(y_true, y_pred, target_names=target_names, output_dict=True)        
         print(f"Accuracy on input file: {acc:.4f}")
     else:
         acc = None
         cm = None
         report = None
-        print("No ground truth column 'sentiment' found.")
+        print(f"No ground truth column '{TARGET_COL}' found.")
 
     metrics = InferenceMetrics(
         timestamp_utc=utc_now_iso(),
@@ -132,6 +145,8 @@ def main() -> None:
 
     save_metrics_json(metrics, metrics_out_path)
     append_run_log_csv(metrics, METRICS_DIR / "inference_runs.csv")
+    latest_path = PREDICTIONS_DIR / "predictions.csv"
+    save_predictions(df, y_pred, latest_path)
     print(f"Saved predictions: {pred_out_path}")
     print(f"Saved metrics: {metrics_out_path}")
     print(f"Appended run log: {METRICS_DIR / 'inference_runs.csv'}")
