@@ -93,8 +93,11 @@ The dataset is expected inside `data/raw`. The data/ directory is ignored by Git
 
 ### 2.3 Train 
 Model is trained and saved in `src/train/train.py`. It validates the input data by checking that all required columns are present, that there are no missing values and labels are correct. The model is built using TF-IDF vectorization with LinearSVC. After training, the trained model is saved to `outputs/models/` and the training metrics are saved to `outputs/metrics/train_metrics.json`. All file paths are defined in src/utils/paths.py, so the code does not rely on any absolute system paths.
-- Train locally by: 
-``` python -m src.train.train
+```markdown
+Train locally by:
+
+```bash
+python -m src.train.train
 ```
 Artifacts will be saved to `outputs/models/` and `outputs/metrics/train_metrics.json`. 
 
